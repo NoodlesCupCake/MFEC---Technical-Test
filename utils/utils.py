@@ -27,11 +27,10 @@ def create_text_file(words):
             with open(file_path, "w") as f:
                 f.write((word + "\n") * 100)
             
-            print(f"File '{file_path}' created and written with the word '{word}' 100 times.")
-        
         except Exception as e:
             print(f"Failed to create or write to '{word}': {e}")
-
+    
+    print(f"Successfully created .txt files")
 
 def get_folder_size_and_report(vocab_dir='./vocab', zipped_dir="./zipped", output_pdf='report.pdf'):
     total_size = 0
