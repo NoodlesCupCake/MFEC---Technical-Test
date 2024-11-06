@@ -3,8 +3,41 @@ import os
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 import shutil
+from concurrent.futures import ThreadPoolExecutor
 
-def create_text_file(words):
+
+def create_text_file_for_word(word, base_dir="./vocab"):
+    try:
+        # Capitalize the first letter of the word
+        capitalized_word = word.capitalize()
+        
+        # Extract the first and second letters for directory structure
+        first_letter = capitalized_word[0].upper()  # First letter (upper case)
+        second_letter = capitalized_word[1].upper() if len(word) > 1 else '' # Second letter (upper case)
+
+        # Create the directory if it doesn't exist
+        directory_path = os.path.join(base_dir, first_letter, second_letter)
+        os.makedirs(directory_path, exist_ok=True)  # Create the directory if it doesn't exist
+
+        filename = f"{capitalized_word}.txt"
+        file_path = os.path.join(directory_path, filename)
+
+        # Write the word 100 times in the .txt file
+        with open(file_path, "w") as f:
+            f.write((word + "\n") * 100)
+        
+    except Exception as e:
+        print(f"Failed to create or write to '{word}': {e}")
+
+
+def create_text_file_with_ThreadPoolExecutor(words, base_dir="./vocab", max_workers=32):
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        executor.map(lambda word: create_text_file_for_word(word, base_dir), words)
+    
+    print(f"Successfully created .txt files")
+
+
+def create_text_file_without_ThreadPoolExecutor(words):
     for word in words:
         try:
             # Capitalize the first letter of the word
@@ -28,6 +61,7 @@ def create_text_file(words):
             print(f"Failed to create or write to '{word}': {e}")
     
     print(f"Successfully created .txt files")
+
 
 def get_folder_size_and_report(vocab_dir='./vocab', zipped_dir="./zipped", output_pdf='report.pdf'):
     total_size = 0
@@ -102,8 +136,29 @@ def get_folder_size_and_report(vocab_dir='./vocab', zipped_dir="./zipped", outpu
     print(f"Successfully export PDF report, it has been saved as {output_pdf}.")
 
 
+def zip_directory(first_letter, base_dir, output_dir):
+    """Helper function to zip a single directory."""
+    first_letter_path = os.path.join(base_dir, first_letter)
+    zip_filename = os.path.join(output_dir, first_letter)
+    
+    # Creating the archive
+    shutil.make_archive(zip_filename, 'zip', first_letter_path)
 
-def zip_first_level_directories(base_dir='./vocab', output_dir='./zipped'):
+
+def zip_first_level_directories_with_ThreadPoolExecutor(base_dir='./vocab', output_dir='./zipped', max_workers=32):
+    # Create the output directory if it doesn't exist
+    os.makedirs(output_dir, exist_ok=True)
+
+    # List the first-level directories
+    first_level_dirs = [d for d in os.listdir(base_dir)]
+
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        executor.map(lambda first_letter: zip_directory(first_letter, base_dir, output_dir), first_level_dirs)
+
+    print(f"Successfully zipped the 1-level folders.")
+
+
+def zip_first_level_directories_without_ThreadPoolExecutor(base_dir='./vocab', output_dir='./zipped'):
     # Create the output directory if it doesn't exist
     os.makedirs(output_dir, exist_ok=True)
     

@@ -1,5 +1,5 @@
 from services.services import capitalize_the_first_character_of_all_words, connect_to_database, create_table, export_dictionary_to_pdf, insert_words_into_db, search_word_by_length, search_word_with_same_first_and_last_character, search_word_with_two_or_more_same_characters
-from utils.utils import load_words_from_csv, create_text_file, get_folder_size_and_report, zip_first_level_directories
+from utils.utils import load_words_from_csv, create_text_file_with_ThreadPoolExecutor, get_folder_size_and_report, zip_first_level_directories_with_ThreadPoolExecutor
 import time
 
 def main():
@@ -14,10 +14,10 @@ def main():
     # 2. เอามาสร้างไฟล์ text โดยให้ชื่อไฟล์เป็นชื่อคำศัพท์ เช่น joke --> joke.txt โดยในเนื้อหาไฟล์เป็นคำ ๆ นั้น (เปิดไฟล์ joke.txt เจอคำว่า joke ในไฟล์ โดยให้มีซ้ำ ๆ ไป 100 ครั้ง) 
     # 3. ใช้เป็นตัวอักษรตัวเล็กทั้งหมด 
     # 4. ไฟล์เหล่านี้ ให้เก็บไว้ใน directory ตำมตัวอักษร 2 level
-    create_text_file(words)
+    create_text_file_with_ThreadPoolExecutor(words)
 
     # 6. zip ไฟล์ทีละไดเรคทอรี เป็น a.zip, b.zip,... แล้วทำ report เปรียบเทียบว่า ขนาดก่อน zip กับหลัง zip ต่างกันเป็นกี่ % 
-    zip_first_level_directories()
+    zip_first_level_directories_with_ThreadPoolExecutor()
 
     # 5. ทำ report ของ folder size ว่ามีขนาดเท่าไหร่เป็น Kbyte และมีลิสต์ของแต่ละไฟล์ด้วย นึกถึงคำสั่ง ls -l ใน unix และทำเฉพำะ level 1
     get_folder_size_and_report()
