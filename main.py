@@ -1,4 +1,4 @@
-from services.services import capitalize_the_first_character_of_all_words, connect_to_database, create_table, insert_words_into_db, search_word_by_length, search_word_with_same_first_and_last_character, search_word_with_two_or_more_same_characters
+from services.services import capitalize_the_first_character_of_all_words, connect_to_database, create_table, export_dictionary_to_pdf, insert_words_into_db, search_word_by_length, search_word_with_same_first_and_last_character, search_word_with_two_or_more_same_characters
 from utils.utils import load_words_from_csv, create_text_file, get_folder_size_and_report, zip_first_level_directories
 
 def main():
@@ -37,7 +37,7 @@ def main():
     capitalize_the_first_character_of_all_words(connection)
 
     # 8. Export คำใน database ทั้งหมดออกมาเป็น pdf file เรียงบรรทัดละคำ (ขนาดใช้เป็น A4) 
-
+    export_dictionary_to_pdf(connection)
 
     connection.close()
 
