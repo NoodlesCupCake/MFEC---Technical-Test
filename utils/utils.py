@@ -6,17 +6,13 @@ import shutil
 
 def create_text_file(words):
     for word in words:
-        # Filter out the word that is less than 2 characters
-        if len(word) < 2:
-            continue
-
         try:
             # Capitalize the first letter of the word
             capitalized_word = word.capitalize()
             
             # Extract the first and second letters for directory structure
             first_letter = capitalized_word[0].upper()  # First letter (upper case)
-            second_letter = capitalized_word[1].upper() # Second letter (upper case)
+            second_letter = capitalized_word[1].upper() if len(word) > 1 else '' # Second letter (upper case)
 
             # Create the directory structure if it doesn't exist
             directory_path = os.path.join("./vocab", first_letter, second_letter)
@@ -53,15 +49,25 @@ def get_folder_size_and_report(vocab_dir='./vocab', zipped_dir="./zipped", outpu
         first_letter_size = 0
         first_letter_path = os.path.join(vocab_dir, first_letter)
 
-
         # Get the size for each of the file in the 2-level folder
         for second_letter in os.listdir(first_letter_path):
             second_letter_path = os.path.join(first_letter_path, second_letter)
 
-            for filename in os.listdir(second_letter_path):
-                file_path = os.path.join(second_letter_path, filename)
-                
-                file_size = os.path.getsize(file_path)
+            # Check if it's a directory
+            if os.path.isdir(second_letter_path):
+                for filename in os.listdir(second_letter_path):
+                    file_path = os.path.join(second_letter_path, filename)
+                    
+                    # Check if it's a file
+                    if os.path.isfile(file_path):
+                        file_size = os.path.getsize(file_path)
+                        file_size_kb = file_size / 1024 
+                        total_size += file_size_kb
+                        first_letter_size += file_size_kb
+
+            # In case the word has length < 2 (A.txt)
+            elif os.path.isfile(second_letter_path):
+                file_size = os.path.getsize(second_letter_path)
                 file_size_kb = file_size / 1024 
                 total_size += file_size_kb
                 first_letter_size += file_size_kb
@@ -93,7 +99,7 @@ def get_folder_size_and_report(vocab_dir='./vocab', zipped_dir="./zipped", outpu
     # Save the PDF
     c.save()
 
-    print(f"PDF report has been saved as {output_pdf}.")
+    print(f"Successfully export PDF report, it has been saved as {output_pdf}.")
 
 
 
