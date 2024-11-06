@@ -1,1 +1,5 @@
 /vocab/*
+/zipped/*
+/database/*
+*.pdf
+*.csv
