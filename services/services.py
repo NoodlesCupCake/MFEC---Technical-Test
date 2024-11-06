@@ -1,4 +1,6 @@
 import sqlite3
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
 import os
 
 def connect_to_database(db_name, database_dir='./database'):
@@ -49,7 +51,6 @@ def insert_words_into_db(connection, words, table_name='dictionary'):
 
 def search_word_by_length(connection, table_name='dictionary', length=5):
     try:
-        # Use the connect_to_database function to get a connection
         cursor = connection.cursor()
 
         # Execute the query to count words 
@@ -63,9 +64,30 @@ def search_word_by_length(connection, table_name='dictionary', length=5):
         return None
     
 
+def search_word_with_two_or_more_same_characters(connection, table_name='dictionary'):
+    try:
+        cursor = connection.cursor()
+        alphabet = 'abcdefghijklmnopqrstuvwxyz'
+        
+        # For each letter in the alphabet, check if the word has at least 2 of the same character
+        query_parts = [f"LENGTH(word) - LENGTH(REPLACE(word, '{letter}', '')) >= 2" for letter in alphabet]
+
+        cursor.execute(f"SELECT COUNT(*), word FROM {table_name} WHERE {' OR '.join(query_parts)}")
+        count, word = cursor.fetchone()
+
+        if count is None:
+            print("No words with two or more identical characters were found.")
+        else:
+            print(f"There are {count} words that have two or more same characters in the word (For example: {word}).")
+
+        return count if count else 0
+    except Exception as e:
+        print(f"Failed to count words. Error: {e}")
+        return None
+
+
 def search_word_with_same_first_and_last_character(connection, table_name='dictionary'):
     try:
-        # Use the connect_to_database function to get a connection
         cursor = connection.cursor()
 
         # Execute the query to count words 
@@ -77,3 +99,52 @@ def search_word_with_same_first_and_last_character(connection, table_name='dicti
     except Exception as e:
         print(f"Failed to count words. Error: {e}")
         return None
+    
+
+def capitalize_the_first_character_of_all_words(connection, table_name='dictionary'):
+    try:
+        cursor = connection.cursor()
+        
+        # || = concat strings together
+        cursor.execute(f"UPDATE {table_name} SET word = UPPER(SUBSTR(word, 1, 1)) || SUBSTR(word, 2)")
+        connection.commit()
+
+        print("Successfully capitalize the first character for every words.")
+
+    except Exception as e:
+        print(f"Failed to update words. Error: {e}")
+        connection.rollback() 
+
+
+def export_dictionary_to_pdf(connection, table_name='dictionary', output_pdf='reportDB.pdf'):
+    try:
+        cursor = connection.cursor()
+        cursor.execute(f"SELECT word FROM {table_name} ORDER BY word")
+        words = cursor.fetchall()
+
+        c = canvas.Canvas(output_pdf, pagesize=A4)
+        _, height = A4 
+        y_position = height - 40 
+
+        c.setFont("Courier-Bold", 16)
+        c.drawString(150, y_position, "Dictionary Words Report")
+        y_position -= 20
+
+        # Set font for the words
+        c.setFont("Courier", 12)
+
+        for word in words:
+            if y_position < 40: 
+                c.showPage()
+                c.setFont("Courier", 12)
+                y_position = height - 40 
+
+            c.drawString(30, y_position, word[0])
+            y_position -= 15
+
+        c.save()
+
+        print(f"Successfully exported dictionary PDF report from the database, it has been saved as {output_pdf}.")
+    
+    except Exception as e:
+        print(f"Error occurred: {e}")
