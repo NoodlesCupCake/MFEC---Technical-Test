@@ -58,7 +58,7 @@ def create_text_file(words):
             print(f"Failed to create or write to '{word}': {e}")
 
 
-def get_folder_size_and_report(base_dir='./vocab', output_pdf='report.pdf'):
+def get_folder_size_and_report(vocab_dir='./vocab', zipped_dir="./zipped", output_pdf='report.pdf'):
     total_size = 0
     first_letter_sizes = {}  # Dictionary to store size of each first-letter folder
 
@@ -66,16 +66,16 @@ def get_folder_size_and_report(base_dir='./vocab', output_pdf='report.pdf'):
     c = canvas.Canvas(output_pdf, pagesize=A4)
     _, height = A4 
 
-    c.setFont("Courier", 8)  # Use Courier for a monospaced font, like in a terminal
+    c.setFont("Courier", 8)
     
     y_position = height - 40
 
-    c.drawString(30, y_position, "Size          File Name")
+    c.drawString(30, y_position, "Size                  Zipped Size           Size Different           File Name")
     y_position -= 20
 
-    for first_letter in os.listdir(base_dir):
+    for first_letter in os.listdir(vocab_dir):
         first_letter_size = 0
-        first_letter_path = os.path.join(base_dir, first_letter)
+        first_letter_path = os.path.join(vocab_dir, first_letter)
 
         # Get the size for each of the file in the 2-level folder
         for second_letter in os.listdir(first_letter_path):
@@ -90,11 +90,17 @@ def get_folder_size_and_report(base_dir='./vocab', output_pdf='report.pdf'):
                     total_size += file_size_kb
                     first_letter_size += file_size_kb  # Add to 1-level folder size
 
-        # Store the size of the 1-level folder in the dictionary
+        # Check if the zipped file exists
+        zip_filename = os.path.join(zipped_dir, f"{first_letter}.zip")
+        zipped_size_kb = 0
+        if os.path.exists(zip_filename):
+            zipped_size = os.path.getsize(zip_filename)
+            zipped_size_kb = zipped_size / 1024
+
         first_letter_sizes[first_letter] = first_letter_size
 
         # Format the output: Only size and folder name
-        file_info = f"{first_letter_size:10.2f} KB        {first_letter}"
+        file_info = f"{first_letter_size:10.2f} KB        {zipped_size_kb:10.2f} KB                 {100-(zipped_size_kb/first_letter_size)*100:.2f}%                   {first_letter}"
         c.drawString(15, y_position, file_info)
         y_position -= 15 # \n
 
@@ -105,12 +111,13 @@ def get_folder_size_and_report(base_dir='./vocab', output_pdf='report.pdf'):
             y_position = height - 40
 
     # Print the total size at the bottom of the report
-    c.drawString(30, y_position, f"Total size of files in {base_dir}: {total_size:.2f} KB")
+    c.drawString(30, y_position, f"Total size of files in {vocab_dir}: {total_size:.2f} KB")
     
     # Save the PDF
     c.save()
 
-    print(f"PDF report has been saved as {output_pdf}")
+    print(f"PDF report has been saved as {output_pdf}.")
+
 
 
 def zip_first_level_directories(base_dir='./vocab', output_dir='./zipped'):
@@ -125,7 +132,7 @@ def zip_first_level_directories(base_dir='./vocab', output_dir='./zipped'):
         
         shutil.make_archive(zip_filename, 'zip', first_letter_path)
         
-        print(f"Zipped {first_letter_path} into {zip_filename}.zip")
+    print(f"Successfully zipped the 1-level folders.")
 
 
 def load_words_from_csv(file_path):
@@ -164,26 +171,23 @@ def main():
     csv_file_path = 'dict.csv'  
     db_path = './database/dictionary.db'  # Using a valid SQLite database file extension
     
-    # Load words from the CSV file
+    # 1. หาไฟล์ dictionary อังกฤษ > 20,000 คำ ทำเป็น text file 
     words = load_words_from_csv(csv_file_path)
 
-    # # Convert to text file
-    # create_text_file(words)
+    # 2. เอามาสร้างไฟล์ text โดยให้ชื่อไฟล์เป็นชื่อคำศัพท์ เช่น joke --> joke.txt โดยในเนื้อหาไฟล์เป็นคำ ๆ นั้น (เปิดไฟล์ joke.txt เจอคำว่า joke ในไฟล์ โดยให้มีซ้ำ ๆ ไป 100 ครั้ง) 
+    # 3. ใช้เป็นตัวอักษรตัวเล็กทั้งหมด 
+    # 4. ไฟล์เหล่านี้ ให้เก็บไว้ใน directory ตำมตัวอักษร 2 level
+    create_text_file(words)
 
-    # # Create the table
-    # create_table(db_path)
+    # 5. ทำ report ของ folder size ว่ำมีขนาดเท่ำไหร่เป็น Kbyte และมีลิสต์ของแต่ละไฟล์ด้วย นึกถึงคำสั่ง ls -l ใน unix และทำเฉพำะ level 1
+    get_folder_size_and_report()
 
-    # # Check if words were loaded successfully
-    # if words:
-    #     # Insert words into the database
-    #     insert_words_into_db(words, db_path)
-    # else:
-    #     print("No words to insert into the database.")
-
-    # Report as PDF file
-    get_folder_size_and_report('./vocab', 'report.pdf')
-
+    # 6. zip ไฟล์ทีละไดเรคทอรี เป็น a.zip, b.zip,... แล้วทำ report เปรียบเทียบว่า ขนาดก่อน zip กับหลัง zip ต่างกันเป็นกี่ % 
     zip_first_level_directories()
+
+    # 7. เอา dictionary ลงใน Database แบบไหนก็ได้เช่น SqlLite โดยรันแบบ embeded mode  โดยการออกแบบให้สามารถ query เพื่อตอบคำถามเหล่านี้ได้ 
+    create_table(db_path)
+    insert_words_into_db(words, db_path)
 
 if __name__ == '__main__':
     main()
