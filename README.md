@@ -45,3 +45,9 @@ Please make sure that you are in the root directory of the project, where `main.
 ```bash
 python main.py
 ```
+<br>
+
+----
+### Dataset Source
+
+Therrien, A. (2021). *Dictionary of English Words and Definitions*. Kaggle. Retrieved from [https://www.kaggle.com/datasets/anthonytherrien/dictionary-of-english-words-and-definitions](https://www.kaggle.com/datasets/anthonytherrien/dictionary-of-english-words-and-definitions)
