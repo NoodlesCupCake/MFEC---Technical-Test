@@ -2,5 +2,4 @@
 /zipped/*
 /database/*
 *.pdf
-*.csv
 *.pyc
