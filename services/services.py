@@ -57,8 +57,13 @@ def search_word_by_length(connection, table_name='dictionary', length=5):
         cursor.execute(f"SELECT COUNT(*), word FROM {table_name} WHERE LENGTH(word) > ?", (length,))
         count, word = cursor.fetchone() # Fetch the result
 
-        print(f"There are {count} words that have a length greater than {length} (For example: {word}).")
-        return count
+        if count is None:
+            print(f"No words with its length greater than {length}.")
+        else:
+            print(f"There are {count} words that have a length greater than {length} (For example: {word}).")
+
+        return count if count else 0
+    
     except Exception as e:
         print(f"Failed to count words. Error: {e}")
         return None
@@ -81,6 +86,7 @@ def search_word_with_two_or_more_same_characters(connection, table_name='diction
             print(f"There are {count} words that have two or more same characters in the word (For example: {word}).")
 
         return count if count else 0
+    
     except Exception as e:
         print(f"Failed to count words. Error: {e}")
         return None
@@ -94,8 +100,12 @@ def search_word_with_same_first_and_last_character(connection, table_name='dicti
         cursor.execute(f"SELECT COUNT(*), word FROM {table_name} WHERE SUBSTR(word, 1, 1) = SUBSTR(word, -1, 1);")
         count, word = cursor.fetchone()  # Fetch the result
 
-        print(f"There are {count} words that start and end with the same character (For example: {word}).")
-        return count
+        if count is None:
+            print("No words that start and end with the same character were found.")
+        else:
+            print(f"There are {count} words that start and end with the same character (For example: {word}).")
+
+        return count if count else 0
     except Exception as e:
         print(f"Failed to count words. Error: {e}")
         return None
