@@ -74,6 +74,7 @@ def get_folder_size_and_report(vocab_dir='./vocab', zipped_dir="./zipped", outpu
     y_position -= 20
 
     for first_letter in os.listdir(vocab_dir):
+        # reset 1-level folder size for every new folder
         first_letter_size = 0
         first_letter_path = os.path.join(vocab_dir, first_letter)
 
@@ -99,7 +100,7 @@ def get_folder_size_and_report(vocab_dir='./vocab', zipped_dir="./zipped", outpu
 
         first_letter_sizes[first_letter] = first_letter_size
 
-        # Format the output: Only size and folder name
+        # Format the output: Only size, zipped size, size diff, and folder name
         file_info = f"{first_letter_size:10.2f} KB        {zipped_size_kb:10.2f} KB                 {100-(zipped_size_kb/first_letter_size)*100:.2f}%                   {first_letter}"
         c.drawString(15, y_position, file_info)
         y_position -= 15 # \n
@@ -157,7 +158,7 @@ def insert_words_into_db(words, db_path, table_name='dictionary'):
         connection = sqlite3.connect(db_path)
         cursor = connection.cursor()
 
-        # Perform batch insertions
+        # Perform many insertions
         cursor.executemany(f"INSERT INTO {table_name} (word) VALUES (?)", [(word,) for word in words])
 
         connection.commit()
@@ -169,7 +170,7 @@ def insert_words_into_db(words, db_path, table_name='dictionary'):
 
 def main():
     csv_file_path = 'dict.csv'  
-    db_path = './database/dictionary.db'  # Using a valid SQLite database file extension
+    db_path = './database/dictionary.db'
     
     # 1. หาไฟล์ dictionary อังกฤษ > 20,000 คำ ทำเป็น text file 
     words = load_words_from_csv(csv_file_path)
