@@ -48,7 +48,7 @@ def insert_words_into_db(connection, words, table_name='dictionary'):
     except Exception as e:
         print(f"Failed to insert words into the database. Error: {e}")
 
-
+# 7.1 มีคำกี่คำที่มีความยาว > 5 ตัวอักษร
 def search_word_by_length(connection, table_name='dictionary', length=5):
     try:
         cursor = connection.cursor()
@@ -60,15 +60,23 @@ def search_word_by_length(connection, table_name='dictionary', length=5):
         if count is None:
             print(f"No words with its length greater than {length}.")
         else:
-            print(f"There are {count} words that have a length greater than {length} (For example: {word}).")
+            print(f"There are {count} words that have a length greater than {length}.")
 
-        return count if count else 0
+        return { 
+            "status": "success", 
+            "message": f"There are {count} words that have a length greater than {length}.",
+            "example_word": word,
+            "count": count, 
+        }
     
     except Exception as e:
         print(f"Failed to count words. Error: {e}")
-        return None
+        return { 
+            "status": "fail", 
+            "message": f"Failed to count words. Error: {e}" 
+        }
     
-
+# 7.2 มีคำกี่คำที่มีตัวอักษรซ้ำในคำมากกว่าหรือเท่ากับ 2 characters
 def search_word_with_two_or_more_same_characters(connection, table_name='dictionary'):
     try:
         cursor = connection.cursor()
@@ -83,15 +91,23 @@ def search_word_with_two_or_more_same_characters(connection, table_name='diction
         if count is None:
             print("No words with two or more identical characters were found.")
         else:
-            print(f"There are {count} words that have two or more same characters in the word (For example: {word}).")
+            print(f"There are {count} words that have two or more same characters in the word.")
 
-        return count if count else 0
+        return { 
+            "status": "success", 
+            "message": f"There are {count} words that start and end with the same character.",
+            "example_word": word,
+            "count": count, 
+        }
     
     except Exception as e:
         print(f"Failed to count words. Error: {e}")
-        return None
+        return { 
+            "status": "fail", 
+            "message": f"Failed to count words. Error: {e}",
+        }
 
-
+# 7.3 มีคำกี่คำที่ขึ้นต้นและลงท้ำยด้วยตัวอักษรเดียวกัน
 def search_word_with_same_first_and_last_character(connection, table_name='dictionary'):
     try:
         cursor = connection.cursor()
@@ -103,14 +119,23 @@ def search_word_with_same_first_and_last_character(connection, table_name='dicti
         if count is None:
             print("No words that start and end with the same character were found.")
         else:
-            print(f"There are {count} words that start and end with the same character (For example: {word}).")
+            print(f"There are {count} words that start and end with the same character.")
 
-        return count if count else 0
+        return { 
+            "status": "success", 
+            "message": f"There are {count} words that start and end with the same character.",
+            "example_word": word,
+            "count": count, 
+        }
+    
     except Exception as e:
         print(f"Failed to count words. Error: {e}")
-        return None
+        return { 
+            "status": "fail", 
+            "message": f"Failed to count words. Error: {e}",
+        }
     
-
+# 7.4 ให้สั่งอัพเดตคำที่มีทั้งหมดให้ตัวอักษรตัวแรกเป็นตัวพิมพ์ใหญ่
 def capitalize_the_first_character_of_all_words(connection, table_name='dictionary'):
     try:
         cursor = connection.cursor()
@@ -121,12 +146,22 @@ def capitalize_the_first_character_of_all_words(connection, table_name='dictiona
 
         print("Successfully capitalize the first character for every words.")
 
+        return { 
+            "status": "success", 
+            "message": "Successfully capitalize the first character for every words."
+        }
+
     except Exception as e:
         print(f"Failed to update words. Error: {e}")
         connection.rollback() 
 
+        return { 
+            "status": "fail", 
+            "message": f"Failed to update words. Error: {e}" 
+        }
 
-def export_dictionary_to_pdf(connection, table_name='dictionary', output_pdf='reportDB.pdf'):
+
+def export_dictionary_to_pdf(connection, q7_1, q7_2, q7_3, q7_4, table_name='dictionary', output_pdf='reportDB.pdf'):
     try:
         cursor = connection.cursor()
         cursor.execute(f"SELECT word FROM {table_name} ORDER BY word")
@@ -138,10 +173,40 @@ def export_dictionary_to_pdf(connection, table_name='dictionary', output_pdf='re
 
         c.setFont("Courier-Bold", 16)
         c.drawString(150, y_position, "Dictionary Words Report")
-        y_position -= 20
 
+        y_position -= 20
+        
         # Set font for the words
         c.setFont("Courier", 12)
+
+        c.drawString(30, y_position, f"7.1) {q7_1['message']}")
+        
+        y_position -= 20
+        
+        c.drawString(30, y_position, f"For example: {q7_1['example_word']}")
+
+        y_position -= 20
+
+        c.drawString(30, y_position, "7.2) "+ q7_2['message'])
+        
+        y_position -= 20
+        
+        c.drawString(30, y_position, f"For example: {q7_2['example_word']}")
+
+        y_position -= 20
+        
+        c.drawString(30, y_position, "7.3) "+ q7_3['message'])
+        
+        y_position -= 20
+        
+        c.drawString(30, y_position, f"For example: {q7_3['example_word']}")
+
+        y_position -= 20
+        
+        c.drawString(30, y_position, "7.4) "+ q7_4['message'])
+
+        y_position -= 20
+
 
         for word in words:
             if y_position < 40: 
