@@ -40,7 +40,7 @@ def insert_words_into_db(connection, words, table_name='dictionary'):
         cursor = connection.cursor()
 
         # Perform many insertions
-        cursor.executemany(f"INSERT INTO {table_name} (word) VALUES (?)", [(word,) for word in words])
+        cursor.executemany(f"INSERT INTO {table_name} (word) VALUES (LOWER(?))", [(word,) for word in words])
 
         connection.commit()
         print("Successfully inserted words into the database.")

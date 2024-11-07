@@ -24,7 +24,7 @@ def create_text_file_for_word(word, base_dir="./vocab"):
 
         # Write the word 100 times in the .txt file
         with open(file_path, "w") as f:
-            f.write((word + "\n") * 100)
+            f.write((word.lower() + "\n") * 100)
         
     except Exception as e:
         print(f"Failed to create or write to '{word}': {e}")
