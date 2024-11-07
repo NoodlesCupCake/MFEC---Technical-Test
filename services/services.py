@@ -57,7 +57,7 @@ def search_word_by_length(connection, table_name='dictionary', length=5):
         count = cursor.fetchone()[0]
 
         cursor.execute(f"SELECT word FROM {table_name} WHERE LENGTH(word) > ? LIMIT 1;", (length,))
-        example_word = cursor.fetchone()
+        example_word = cursor.fetchone() # Can't [0] here in case the result is Empty, so it's to avoid accessing a nonexistent element
 
         if count == 0:
             print(f"No words with length greater than {length}.")
@@ -95,7 +95,7 @@ def search_word_with_two_or_more_same_characters(connection, table_name='diction
         count = cursor.fetchone()[0]
 
         cursor.execute(f"SELECT word FROM {table_name} WHERE {' OR '.join(query_parts)} LIMIT 1;")
-        example_word = cursor.fetchone()
+        example_word = cursor.fetchone() # Can't [0] here in case the result is Empty, so it's to avoid accessing a nonexistent element
 
         if count == 0:
             print("No words with two or more identical characters were found.")
@@ -132,7 +132,7 @@ def search_word_with_same_first_and_last_character(connection, table_name='dicti
 
         # Fetch an example word, if any
         cursor.execute(f"SELECT word FROM {table_name} WHERE SUBSTR(LOWER(word), 1, 1) = SUBSTR(LOWER(word), -1, 1) LIMIT 1;")
-        example_word = cursor.fetchone()  # Fetch one example word (or None if no match)
+        example_word = cursor.fetchone()  # Can't [0] here in case the result is Empty, so it's to avoid accessing a nonexistent element
 
         if count == 0:
             print("No words that start and end with the same character were found.")
