@@ -53,21 +53,28 @@ def search_word_by_length(connection, table_name='dictionary', length=5):
     try:
         cursor = connection.cursor()
 
-        # Execute the query to count words 
-        cursor.execute(f"SELECT COUNT(*), word FROM {table_name} WHERE LENGTH(word) > ?", (length,))
-        count, word = cursor.fetchone() # Fetch the result
+        cursor.execute(f"SELECT COUNT(*) FROM {table_name} WHERE LENGTH(word) > ?", (length,))
+        count = cursor.fetchone()[0]
 
-        if count is None:
-            print(f"No words with its length greater than {length}.")
+        cursor.execute(f"SELECT word FROM {table_name} WHERE LENGTH(word) > ? LIMIT 1;", (length,))
+        example_word = cursor.fetchone()
+
+        if count == 0:
+            print(f"No words with length greater than {length}.")
+            return { 
+                "status": "success", 
+                "message": f"No words with length greater than {length}.",
+                "example_word": None,
+                "count": count, 
+            }
         else:
             print(f"There are {count} words that have a length greater than {length}.")
-
-        return { 
-            "status": "success", 
-            "message": f"There are {count} words that have a length greater than {length}.",
-            "example_word": word,
-            "count": count, 
-        }
+            return { 
+                "status": "success", 
+                "message": f"There are {count} words that have a length greater than {length}.",
+                "example_word": example_word[0] if example_word else None,
+                "count": count, 
+            }
     
     except Exception as e:
         print(f"Failed to count words. Error: {e}")
@@ -82,23 +89,30 @@ def search_word_with_two_or_more_same_characters(connection, table_name='diction
         cursor = connection.cursor()
         alphabet = 'abcdefghijklmnopqrstuvwxyz'
         
-        # For each letter in the alphabet, check if the word has at least 2 of the same character
         query_parts = [f"LENGTH(word) - LENGTH(REPLACE(word, '{letter}', '')) >= 2" for letter in alphabet]
 
-        cursor.execute(f"SELECT COUNT(*), word FROM {table_name} WHERE {' OR '.join(query_parts)}")
-        count, word = cursor.fetchone()
+        cursor.execute(f"SELECT COUNT(*) FROM {table_name} WHERE {' OR '.join(query_parts)}")
+        count = cursor.fetchone()[0]
 
-        if count is None:
+        cursor.execute(f"SELECT word FROM {table_name} WHERE {' OR '.join(query_parts)} LIMIT 1;")
+        example_word = cursor.fetchone()
+
+        if count == 0:
             print("No words with two or more identical characters were found.")
+            return { 
+                "status": "success", 
+                "message": "No words with two or more identical characters were found.",
+                "example_word": None,
+                "count": count, 
+            }
         else:
             print(f"There are {count} words that have two or more same characters in the word.")
-
-        return { 
-            "status": "success", 
-            "message": f"There are {count} words that start and end with the same character.",
-            "example_word": word,
-            "count": count, 
-        }
+            return { 
+                "status": "success", 
+                "message": f"There are {count} words that have two or more same characters in the word.",
+                "example_word": example_word[0] if example_word else None,
+                "count": count, 
+            }
     
     except Exception as e:
         print(f"Failed to count words. Error: {e}")
@@ -106,34 +120,44 @@ def search_word_with_two_or_more_same_characters(connection, table_name='diction
             "status": "fail", 
             "message": f"Failed to count words. Error: {e}",
         }
+
 
 # 7.3 มีคำกี่คำที่ขึ้นต้นและลงท้ำยด้วยตัวอักษรเดียวกัน
 def search_word_with_same_first_and_last_character(connection, table_name='dictionary'):
     try:
         cursor = connection.cursor()
 
-        # Execute the query to count words 
-        cursor.execute(f"SELECT COUNT(*), word FROM {table_name} WHERE SUBSTR(LOWER(word), 1, 1) = SUBSTR(LOWER(word), -1, 1);")
-        count, word = cursor.fetchone()  # Fetch the result
+        cursor.execute(f"SELECT COUNT(*) FROM {table_name} WHERE SUBSTR(LOWER(word), 1, 1) = SUBSTR(LOWER(word), -1, 1);")
+        count = cursor.fetchone()[0]  # Fetch the count
 
-        if count is None:
+        # Fetch an example word, if any
+        cursor.execute(f"SELECT word FROM {table_name} WHERE SUBSTR(LOWER(word), 1, 1) = SUBSTR(LOWER(word), -1, 1) LIMIT 1;")
+        example_word = cursor.fetchone()  # Fetch one example word (or None if no match)
+
+        if count == 0:
             print("No words that start and end with the same character were found.")
+            return {
+                "status": "success",
+                "message": "No words that start and end with the same character were found.",
+                "example_word": None,
+                "count": count,
+            }
         else:
             print(f"There are {count} words that start and end with the same character.")
+            return {
+                "status": "success",
+                "message": f"There are {count} words that start and end with the same character.",
+                "example_word": example_word[0] if example_word else None,
+                "count": count,
+            }
 
-        return { 
-            "status": "success", 
-            "message": f"There are {count} words that start and end with the same character.",
-            "example_word": word,
-            "count": count, 
-        }
-    
     except Exception as e:
         print(f"Failed to count words. Error: {e}")
-        return { 
-            "status": "fail", 
+        return {
+            "status": "fail",
             "message": f"Failed to count words. Error: {e}",
         }
+
     
 # 7.4 ให้สั่งอัพเดตคำที่มีทั้งหมดให้ตัวอักษรตัวแรกเป็นตัวพิมพ์ใหญ่
 def capitalize_the_first_character_of_all_words(connection, table_name='dictionary'):
