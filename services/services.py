@@ -113,7 +113,7 @@ def search_word_with_same_first_and_last_character(connection, table_name='dicti
         cursor = connection.cursor()
 
         # Execute the query to count words 
-        cursor.execute(f"SELECT COUNT(*), word FROM {table_name} WHERE SUBSTR(word, 1, 1) = SUBSTR(word, -1, 1);")
+        cursor.execute(f"SELECT COUNT(*), word FROM {table_name} WHERE SUBSTR(LOWER(word), 1, 1) = SUBSTR(LOWER(word), -1, 1);")
         count, word = cursor.fetchone()  # Fetch the result
 
         if count is None:
